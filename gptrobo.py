@@ -31,12 +31,9 @@ def fator_ritmo_manual(ritmo):
         "🔥 Muito alto": 1.40
     }[ritmo]
 
-def fator_fluidez(fluidez):
-    return {
-        "🧊 Truncado": 0.80,
-        "⚖️ Neutro": 1.00,
-        "🚀 Fluido": 1.15
-    }[fluidez]
+def fator_fluidez_fixo():
+    # Fixado em Neutro conforme solicitado
+    return 1.00
 
 def peso_lambda_observado(minuto):
     if minuto < 30:
@@ -105,10 +102,7 @@ with st.sidebar:
         ["🔴 Muito lento", "🟡 Normal", "🟢 Alto", "🔥 Muito alto"]
     )
 
-    fluidez = st.selectbox(
-        "⏱️ Fluidez",
-        ["🧊 Truncado", "⚖️ Neutro", "🚀 Fluido"]
-    )
+    # Fluidez removida do seletor e fixada internamente
 
     st.divider()
 
@@ -134,7 +128,7 @@ lambda_obs = ritmo_obs * min_restantes
 
 # ---- AJUSTES MANUAIS ----
 lambda_obs *= fator_ritmo_manual(ritmo)
-lambda_obs *= fator_fluidez(fluidez)
+lambda_obs *= fator_fluidez_fixo() # Agora usa o valor fixo de 1.00 (Neutro)
 
 # ---- COMBINAÇÃO DINÂMICA ----
 peso_obs = peso_lambda_observado(minuto)
@@ -150,9 +144,7 @@ if ritmo == "🔴 Muito lento" and linha >= 7.5:
     veto = True
     motivos.append("Ritmo muito lento para linha alta")
 
-if fluidez == "🧊 Truncado" and minuto > 60:
-    veto = True
-    motivos.append("Jogo truncado em fase tardia")
+# Veto de fluidez truncada removido pois agora é sempre Neutro
 
 if min_restantes < 15 and linha - escanteios >= 4:
     veto = True
@@ -170,7 +162,7 @@ ev_over = calcular_ev(p_over, p_lose_over, odd_o)
 ev_under = calcular_ev(p_under, p_lose_under, odd_u)
 
 # ======================================================
-# RESULTADOS (MODIFICADO: FILTRO SOMENTE OVER)
+# RESULTADOS (FILTRO SOMENTE OVER)
 # ======================================================
 st.divider()
 
@@ -186,20 +178,7 @@ if veto:
     for m in motivos:
         st.write("•", m)
 else:
-    # Mostra apenas sugestão se o valor esperado (EV) do Over for positivo
     if ev_over > 0.05:
         f_k = calcular_kelly(p_over, p_lose_over, odd_o, kelly_factor)
         st.success(f"✅ ENTRAR OVER {linha}")
-        st.write(f"Stake sugerida: R$ {banca * f_k:.2f}")
-    else:
-        # Se o Under for bom ou o Over for ruim, ele apenas avisa que não há entrada disponível
-        st.warning("⛔ SEM ENTRADA — EV para Over insuficiente")
-
-# ======================================================
-# DEBUG / TRANSPARÊNCIA
-# ======================================================
-with st.expander("🔍 Detalhes do Modelo"):
-    st.write(f"Lambda Teórico: {lambda_teorico:.2f}")
-    st.write(f"Lambda Observado: {lambda_obs:.2f}")
-    st.write(f"Peso Observado: {peso_obs:.0%}")
-    st.write(f"Lambda Final: {lambda_final:.2f}")
+        st.write(f"Stake sugerida: R$
