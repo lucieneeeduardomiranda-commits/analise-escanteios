@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import streamlit as st
 import math
 from scipy.stats import nbinom
@@ -170,7 +170,7 @@ ev_over = calcular_ev(p_over, p_lose_over, odd_o)
 ev_under = calcular_ev(p_under, p_lose_under, odd_u)
 
 # ======================================================
-# RESULTADOS
+# RESULTADOS (MODIFICADO: FILTRO SOMENTE OVER)
 # ======================================================
 st.divider()
 
@@ -186,16 +186,14 @@ if veto:
     for m in motivos:
         st.write("•", m)
 else:
+    # Mostra apenas sugestão se o valor esperado (EV) do Over for positivo
     if ev_over > 0.05:
         f_k = calcular_kelly(p_over, p_lose_over, odd_o, kelly_factor)
         st.success(f"✅ ENTRAR OVER {linha}")
         st.write(f"Stake sugerida: R$ {banca * f_k:.2f}")
-    elif ev_under > 0.05:
-        f_k = calcular_kelly(p_under, p_lose_under, odd_u, kelly_factor)
-        st.info(f"🔵 ENTRAR UNDER {linha}")
-        st.write(f"Stake sugerida: R$ {banca * f_k:.2f}")
     else:
-        st.warning("⛔ SEM ENTRADA — EV insuficiente")
+        # Se o Under for bom ou o Over for ruim, ele apenas avisa que não há entrada disponível
+        st.warning("⛔ SEM ENTRADA — EV para Over insuficiente")
 
 # ======================================================
 # DEBUG / TRANSPARÊNCIA
