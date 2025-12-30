@@ -102,8 +102,6 @@ with st.sidebar:
         ["🔴 Muito lento", "🟡 Normal", "🟢 Alto", "🔥 Muito alto"]
     )
 
-    # Fluidez removida do seletor e fixada internamente
-
     st.divider()
 
     banca = st.number_input("💰 Banca (R$)", 0.0, 100000.0, 1000.0)
@@ -128,7 +126,7 @@ lambda_obs = ritmo_obs * min_restantes
 
 # ---- AJUSTES MANUAIS ----
 lambda_obs *= fator_ritmo_manual(ritmo)
-lambda_obs *= fator_fluidez_fixo() # Agora usa o valor fixo de 1.00 (Neutro)
+lambda_obs *= fator_fluidez_fixo()
 
 # ---- COMBINAÇÃO DINÂMICA ----
 peso_obs = peso_lambda_observado(minuto)
@@ -143,8 +141,6 @@ motivos = []
 if ritmo == "🔴 Muito lento" and linha >= 7.5:
     veto = True
     motivos.append("Ritmo muito lento para linha alta")
-
-# Veto de fluidez truncada removido pois agora é sempre Neutro
 
 if min_restantes < 15 and linha - escanteios >= 4:
     veto = True
@@ -162,7 +158,7 @@ ev_over = calcular_ev(p_over, p_lose_over, odd_o)
 ev_under = calcular_ev(p_under, p_lose_under, odd_u)
 
 # ======================================================
-# RESULTADOS (FILTRO SOMENTE OVER)
+# RESULTADOS
 # ======================================================
 st.divider()
 
@@ -181,4 +177,16 @@ else:
     if ev_over > 0.05:
         f_k = calcular_kelly(p_over, p_lose_over, odd_o, kelly_factor)
         st.success(f"✅ ENTRAR OVER {linha}")
-        st.write(f"Stake sugerida: R$
+        st.write(f"Stake sugerida: R$ {banca * f_k:.2f}")
+    else:
+        st.warning("⛔ SEM ENTRADA — EV para Over insuficiente")
+
+# ======================================================
+# DEBUG / TRANSPARÊNCIA
+# ======================================================
+with st.expander("🔍 Detalhes do Modelo"):
+    st.write(f"Lambda Teórico: {lambda_teorico:.2f}")
+    st.write(f"Lambda Observado: {lambda_obs:.2f}")
+    st.write(f"Peso Observado: {peso_obs:.0%}")
+    st.write(f"Lambda Final: {lambda_final:.2f}")
+    st.write("Fluidez: Fixada em Neutro (1.0x)")
